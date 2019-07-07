@@ -1,13 +1,15 @@
 
-function getChannelMessages(db, channelName, callback, timestamp_ms_beginning, timestamp_ms_end) {
+function getChannelMessages(db, channelName, callback, select_clause, timestamp_ms_beginning, timestamp_ms_end) {
+  if (!select_clause) {
+    select_clause = "*";
+  }
   var where_clause = `channelId = (select id from channel where channel.name="${channelName}")`;
   if (timestamp_ms_beginning != undefined && timestamp_ms_end != undefined) {
     where_clause += ` and timestamp > ${timestamp_ms_beginning / 1000}`;
     where_clause += ` and timestamp < ${timestamp_ms_end / 1000}`;
   }
-  console.log(where_clause);
   db.serialize(function() {
-    db.all(`SELECT * from message WHERE ${where_clause};`, [], (err, rows) => {
+    db.all(`SELECT ${select_clause} from message WHERE ${where_clause};`, [], (err, rows) => {
       if (err) {
         console.log("Error selecting messages from channel:");
         console.log(err);

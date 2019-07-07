@@ -15,8 +15,21 @@ function handleIndex(req, res) {
   res.send('Hello World! :))-');
 }
 
+function getTimestampsForChannel(channel, callback) {
+  var all_timestamps = [];
+  db_utils.getChannelMessages(db, channel, (rows) => {
+    rows.forEach(function(row) {
+        all_timestamps.push(row["timestamp"]);
+    });
+    callback(all_timestamps);
+  }, "timestamp");
+}
+
 function handleChannel(req, res) {
-  res.send('Hello Channel ' + req.params['channel'] + '! :))-');
+  var channel = req.params['channel'];
+  getTimestampsForChannel(channel, function(all_timestamps) {
+    res.send(`here are all the chat timestamps for #${channel}: ${JSON.stringify(all_timestamps)}`);
+  });
 }
 
 function handleChannelWithDay(req, res) {
