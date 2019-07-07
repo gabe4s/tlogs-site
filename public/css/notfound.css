@@ -1,0 +1,12 @@
+#content-container {
+    text-align: center;
+    overflow-y: hidden;
+}
+
+h1 {
+    font-size: 64px;
+}
+
+img {
+    height: 500px;
+}

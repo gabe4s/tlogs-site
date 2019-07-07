@@ -1,0 +1,26 @@
+#channel-textbox {
+    width: 300px;
+    border: 1px solid #6441a4;
+    padding: 10px;
+    font-size: 24px;
+    color: #6441a4;
+    outline-style:none;
+}
+
+#channel-textbox::placeholder {
+    color: #b7a4db;
+}
+
+#channel-button {
+    background-color: #6441a4;
+    color: white;
+    font-size: 24px;
+    height: 50px;
+    border: 1px solid #6441a4;
+    width: 100px;
+    cursor: pointer;
+}
+
+#channel-button:hover {
+    background-color: #b7a4db;
+}

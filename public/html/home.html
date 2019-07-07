@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="../css/common.css">
+        <link rel="stylesheet" href="../css/home.css">
+    </head>
+    <body>
+        <div id="site-header">Tlogs</div>
+        <div id="wrapper">
+            <div id="content-container">
+                <input id="channel-textbox" placeholder="Channel Name" type="text" name="channel">
+                <button id="channel-button" onclick="gotoChannel()">Go</button>
+
+                <h1>What is this?</h1>
+                <p>Chat lots!</p>
+                <h1>Who are we?</h1>
+                <p>Cant tell you...</p>
+            </div>
+        </div>
+
+        <script>
+                function gotoChannel() {
+                    location.href = document.getElementById("channel-textbox").value;
+                }
+    
+                var textbox = document.getElementById("channel-textbox");
+                textbox.addEventListener("keyup", function(event) {
+                    if (event.keyCode === 13) {
+                        gotoChannel();
+                    }
+                });
+            </script>
+    </body>
+</html>
