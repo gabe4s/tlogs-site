@@ -62,7 +62,6 @@ var db = new sqlite3.Database('./messages.sqlite', sqlite3.OPEN_READWRITE, (err)
   }
   console.log("Connected to messages database.");
 });
-console.log(db_utils.getChannelMessages(db, "monotonetim", (rows) => { console.log(rows); console.log(rows.length); }, 1562522455000, 1562523455000));
 
 startBot(db);
 
