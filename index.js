@@ -1,8 +1,18 @@
+var path = require('path');
 var sqlite3 = require('sqlite3').verbose();
 const db_utils = require('./db_utils.js');
 
 var express = require('express');
+var exphbs  = require('express-handlebars');
+
 var app = express();
+
+app.engine(".html", exphbs({extname: ".html"}));
+app.set("view engine", ".html");
+app.set("views", path.join(__dirname, "/public/html/"));
+app.use(express.static("public"));
+
+app.locals.layout = false;
 
 var db = new sqlite3.Database('./messages.sqlite', sqlite3.OPEN_READWRITE, (err) => {
   if (err) {
@@ -12,11 +22,13 @@ var db = new sqlite3.Database('./messages.sqlite', sqlite3.OPEN_READWRITE, (err)
 });
 
 function handleIndex(req, res) {
-  res.send('Hello World! :))-');
+  res.render('home');
 }
 
 function handleChannel(req, res) {
-  res.send('Hello Channel ' + req.params['channel'] + '! :))-');
+  var testObject = {};
+  testObject.days = ["2019-07-07", "2019-07-12"]
+  res.render('template-channel', testObject);
 }
 
 function handleChannelWithDay(req, res) {
