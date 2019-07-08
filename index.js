@@ -1,3 +1,4 @@
+var moment = require('moment-timezone');
 var path = require('path');
 var sqlite3 = require('sqlite3').verbose();
 const db_utils = require('./db_utils.js');
@@ -5,7 +6,9 @@ const db_utils = require('./db_utils.js');
 var express = require('express');
 var exphbs  = require('express-handlebars');
 
+const cookieParser = require("cookie-parser");
 var app = express();
+app.use(cookieParser());
 
 app.engine(".html", exphbs({extname: ".html"}));
 app.set("view engine", ".html");
@@ -35,12 +38,42 @@ function getTimestampsForChannel(channel, callback) {
   }, "timestamp");
 }
 
+function bucketTimestampsIntoDays(timestamps, timezoneString) {
+  // List of timestamps -> converts to a {day: count} mapping (day in YYYY-MM-DD format)
+  var dayMessageCount = {};
+  timestamps.forEach(function(timestamp_sec) {
+    var day = moment.tz(timestamp_sec * 1000, timezoneString).format("YYYY-MM-DD");
+    if (!dayMessageCount[day]) {
+      dayMessageCount[day] = 0;
+    }
+    dayMessageCount[day] += 1;
+  });
+  console.log(dayMessageCount);
+  return dayMessageCount;
+}
+
 function handleChannel(req, res) {
   var channel = req.params['channel'];
+  // Check for timezone cookie
+  console.log(req.cookies);
+  if (!req.cookies || req.cookies.timezonestring == undefined) {
+    // KEEP THIS SCRIPT AS SIMPLE AS POSSIBLE.
+    res.send(`Redirecting, please wait...
+              <script>
+                document.cookie='timezonestring=' + Intl.DateTimeFormat().resolvedOptions().timeZone;
+                location.reload();
+              </script>`);
+    return;
+  }
+  // Send the message counts back to the server - {day: message count} mapping.
   getTimestampsForChannel(channel, function(all_timestamps) {
-    // res.send(`here are all the chat timestamps for #${channel}: ${JSON.stringify(all_timestamps)}`);
     var testObject = {};
-    testObject.timestamps = all_timestamps;
+    var timezoneString = req.cookies.timezonestring;
+    // Use the timezone to figure out the days that chat messages were sent.
+    var dayMessageCount = bucketTimestampsIntoDays(all_timestamps, timezoneString) 
+    testObject.dayMessageCount = dayMessageCount;
+    res.send(`timezoneString: ${timezoneString}, dayMessageCount: ${JSON.stringify(dayMessageCount)}`);
+    return;
     res.render('template-channel', testObject);
   });
 }
