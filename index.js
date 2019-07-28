@@ -48,14 +48,22 @@ function bucketTimestampsIntoDays(timestamps, timezoneString) {
     }
     dayMessageCount[day] += 1;
   });
-  console.log(dayMessageCount);
   return dayMessageCount;
+}
+
+// Returns the [lower, upper] bounds (in timestamps)
+// `day` is is 2019-07-26 format and `timezoneString` is in America/NewYork format
+function getTimestampBounds(day, timezoneString) {
+  var datetimeStart = moment.tz(day, timezoneString).startOf('day');
+  var datetimeEnd = datetimeStart.clone().endOf('day');
+  var lowerBound = datetimeStart.unix();
+  var upperBound = datetimeEnd.unix();
+  return [lowerBound * 1000, upperBound * 1000];
 }
 
 function handleChannel(req, res) {
   var channel = req.params['channel'];
   // Check for timezone cookie
-  console.log(req.cookies);
   if (!req.cookies || req.cookies.timezonestring == undefined) {
     // KEEP THIS SCRIPT AS SIMPLE AS POSSIBLE.
     res.send(`Redirecting, please wait...
@@ -67,26 +75,31 @@ function handleChannel(req, res) {
   }
   // Send the message counts back to the server - {day: message count} mapping.
   getTimestampsForChannel(channel, function(all_timestamps) {
-    var testObject = {};
+    var template = {};
     var timezoneString = req.cookies.timezonestring;
     // Use the timezone to figure out the days that chat messages were sent.
     var dayMessageCount = bucketTimestampsIntoDays(all_timestamps, timezoneString) 
-    testObject.dayMessageCount = dayMessageCount;
+    template.dayMessageCount = dayMessageCount;
     res.send(`timezoneString: ${timezoneString}, dayMessageCount: ${JSON.stringify(dayMessageCount)}`);
     return;
-    res.render('template-channel', testObject);
+    res.render('template-channel', template);
   });
 }
 
 function handleChannelWithDay(req, res) {
-  var channel = req.params['channel'];
   var day = req.params['day'];
-  // res.send(`Hello Channel ${channel} on day ${day}`);
-  var all_messages = [];
+  var timezoneString = req.cookies.timezonestring;
+  var beginTimestamp, endTimestamp;
+  [beginTimestamp, endTimestamp] = getTimestampBounds(day, timezoneString);
+  var channel = req.params['channel'];
+  console.log(`begin ${beginTimestamp}`);
+  console.log(`end ${endTimestamp}`);
+  // res.send(`Hello Channel ${channel} on day ${day}; begin ${beginTimestamp} end ${endTimestamp}`);
   db_utils.getChannelMessages(db, channel, (rows) => {
-      all_messages = rows;
-      res.send(`here are all the chat messages for #${channel}: ${JSON.stringify(all_messages)}`);
-  });
+      var template = {}
+      template["messages"] = rows;
+      res.send(`here are all the ${rows.length} chat messages for #${channel} on ${day}: ${JSON.stringify(rows)}`);
+  }, /*select_clause=*/null, beginTimestamp, endTimestamp);
 }
 
 app.get('/', handleIndex);

@@ -9,7 +9,9 @@ function getChannelMessages(db, channelName, callback, select_clause, timestamp_
     where_clause += ` and timestamp < ${timestamp_ms_end / 1000}`;
   }
   db.serialize(function() {
-    db.all(`SELECT ${select_clause} from message WHERE ${where_clause};`, [], (err, rows) => {
+    var sql_command = `SELECT ${select_clause} from message WHERE ${where_clause};`;
+    console.log(sql_command);
+    db.all(sql_command, [], (err, rows) => {
       if (err) {
         console.log("Error selecting messages from channel:");
         console.log(err);
